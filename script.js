@@ -10,21 +10,9 @@ const countriesContainer = document.querySelector('.countries');
 // https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}
 
 ///////////////////////////////////////
-const getCountryData = function (country) {
-  const request = new XMLHttpRequest();
-  request.open(
-    'GET',
-    `https://countries-api-836d.onrender.com/countries/name/${country}`
-  );
-
-  request.send();
-
-  request.addEventListener('load', function () {
-    const [data] = JSON.parse(this.responseText);
-    console.log(data);
-
-    const html = `
-    <article class="country">
+const renderCountry = function (data, className = '') {
+  const html = `
+    <article class="country ${className}">
       <img class="country__img" src="${data.flag}" />
       <div class="country__data">
          <h3 class="country__name">${data.name}</h3>
@@ -38,10 +26,45 @@ const getCountryData = function (country) {
     </article>
         `;
 
-    countriesContainer.insertAdjacentHTML('beforeend', html);
-    countriesContainer.style.opacity = 1;
+  countriesContainer.insertAdjacentHTML('beforeend', html);
+  countriesContainer.style.opacity = 1;
+};
+
+const getCountryAndNeighbor = function (country) {
+  const request = new XMLHttpRequest();
+  request.open(
+    'GET',
+    `https://countries-api-836d.onrender.com/countries/name/${country}`
+  );
+
+  request.send();
+
+  request.addEventListener('load', function () {
+    const [data] = JSON.parse(this.responseText);
+
+    // Render country 1
+    renderCountry(data);
+
+    // Get neighbor country (2)
+    const neighbor = data.borders?.[0];
+
+    if (!neighbor) return;
+
+    const request2 = new XMLHttpRequest();
+    request2.open(
+      'GET',
+      `https://countries-api-836d.onrender.com/countries/alpha/${neighbor}`
+    );
+
+    request2.send();
+
+    request2.addEventListener('load', function () {
+      const data2 = JSON.parse(this.responseText);
+
+      renderCountry(data2, 'neighbour');
+    });
   });
 };
 
-getCountryData('portugal');
-getCountryData('usa');
+// getCountryAndNeighbor('portugal');
+getCountryAndNeighbor('usa');
