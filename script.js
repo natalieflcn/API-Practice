@@ -114,28 +114,143 @@ const whereAmI = function (lat, lng) {
     `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}`
   )
     .then(res => {
-      res = new Response(null, {
-        status: 403,
-        statusText: 'Not Found',
-      });
+      // res = new Response(null, {
+      //   status: 403,
+      //   statusText: 'Not Found',
+      // });
 
       if (!res.ok) throw new Error(`Too many requests. ${res.status}`);
       return res.json();
     })
     .then(data => {
       console.log(`You are in ${data.city}, ${data.countryName}`);
-      const country = getCountryData(data.countryName);
+      //const country = getCountryData(data.countryName);
+      return fetch(
+        `https://countries-api-836d.onrender.com/countries/name/${data.countryName}`
+      );
     })
+    .then(res => {
+      if (!res.ok) throw new Error(`Country not found ${res.status}`);
 
-    .catch(err => console.error(`Something went wrong. Error: ${err.message}`));
+      return res.json();
+    })
+    .then(data => {
+      console.log(data[0]);
+      renderCountry(data[0]);
+    })
+    .catch(err => console.error(`Something went wrong. Error: ${err.message}`))
+    .finally((countriesContainer.style.opacity = 1));
 };
 
 whereAmI(-33.933, 18.474);
+whereAmI(19.037, 72.873); //undefined
+whereAmI(52.508, 13.381);
 
 // 7. Render the country and catch any errors, just like we have done in the last lecture (you can even copy this code, no need to type the same code)
 
 // TEST COORDINATES 1: 52.508, 13.381 (Latitude, Longitude)
 // TEST COORDINATES 2: 19.037, 72.873
 // TEST COORDINATES 2: -33.933, 18.474
+
+// GOOD LUCK 😀
+
+// Promisifying the Geolocation API
+const whereAmI2 = function () {
+  getPosition()
+    .then(pos => console.log(pos.coords))
+    .fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}`
+    )
+    .then(res => {
+      // res = new Response(null, {
+      //   status: 403,
+      //   statusText: 'Not Found',
+      // });
+
+      if (!res.ok) throw new Error(`Too many requests. ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      console.log(`You are in ${data.city}, ${data.countryName}`);
+      //const country = getCountryData(data.countryName);
+      return fetch(
+        `https://countries-api-836d.onrender.com/countries/name/${data.countryName}`
+      );
+    })
+    .then(res => {
+      if (!res.ok) throw new Error(`Country not found ${res.status}`);
+
+      return res.json();
+    })
+    .then(data => {
+      console.log(data[0]);
+      renderCountry(data[0]);
+    })
+    .catch(err => console.error(`Something went wrong. Error: ${err.message}`))
+    .finally((countriesContainer.style.opacity = 1));
+};
+
+// Coding Challenge #2
+
+// Build the image loading functionality that I just showed you on the screen.
+
+// Tasks are not super-descriptive this time, so that you can figure out some stuff on your own. Pretend you're working on your own 😉
+
+// PART 1
+// 1. Create a function 'createImage' which receives imgPath as an input. This function returns a promise which creates a new image (use document.createElement('img')) and sets the .src attribute to the provided image path. When the image is done loading, append it to the DOM element with the 'images' class, and resolve the promise. The fulfilled value should be the image element itself. In case there is an error loading the image ('error' event), reject the promise.
+
+// If this part is too tricky for you, just watch the first part of the solution.
+setTimeout(function () {
+  console.log('CODING CHALLENGE 2 -----------');
+}, 1000);
+
+const images = document.querySelector('.images');
+
+const createImage = function (imgPath) {
+  return new Promise(function (resolve, reject) {
+    //If image path is valid -- resolve
+    const img = document.createElement('img');
+    img.src = imgPath;
+
+    img.addEventListener('load', function () {
+      images.append(img);
+      resolve(img);
+    });
+
+    //If image path is invalid -- reject
+    img.addEventListener('error', function () {
+      reject(new Error('Image not found.'));
+    });
+  });
+};
+
+createImage('img/img-1.jpg')
+  .then(img => {
+    console.log('IMAGINE SUCCESSFULLY LOADED');
+    setTimeout(function () {
+      img.style.display = 'none';
+    }, 2000);
+  })
+  .then(() => createImage('img/img-2.jpg'))
+  .then(img => {
+    console.log('IMAGE 2 SUCCESS');
+    setTimeout(function () {
+      img.style.display = 'none';
+    }, 2000);
+  })
+  .catch(err => console.error(err.message));
+
+createImage('img/img-.jpg')
+  .then(res => console.log('succesful!'))
+  .catch(err => console.error(err.message));
+
+// PART 2
+// 2. Comsume the promise using .then and also add an error handler;
+// 3. After the image has loaded, pause execution for 2 seconds using the wait function we created earlier;
+// 4. After the 2 seconds have passed, hide the current image (set display to 'none'), and load a second image (HINT: Use the image element returned by the createImage promise to hide the current image. You will need a global variable for that 😉);
+// 5. After the second image has loaded, pause execution for 2 seconds again;
+// 6. After the 2 seconds have passed, hide the current image.
+
+// TEST DATA: Images in the img folder. Test the error handler by passing a wrong image path. Set the network speed to 'Fast 3G' in the dev tools Network tab, otherwise images load too fast.
 
 // GOOD LUCK 😀
